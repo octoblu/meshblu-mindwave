@@ -13,22 +13,3 @@ to both public and private Skynet instances. It uses the [ThinkGear Connector](h
 1. Install ThinkGear Connector
 2. Install Node.js
 3. install the npm package 'npm install meshblu-mindwave'
-
-## 3. Environment Variables
-
-### 3.1 Mindwave Environment Variables
-
-* _MINDWAVE_HOST_ : (Required) This is the ThinkGear Connector Host, the default is '127.0.0.1'
-* _MINDWAVE_PORT_ : (Required) This is the ThinkGear Connector Port, the default is '13854'
-
-### 3.2 Skynet Environment Variables
-
-* _SKYNET_SERVER_ : (Required)This is the Skynet.im Host, the default is 'skynet.im'
-* _SKYNET_PORT_ : (Required) This is the SKynet.im Port, the default is '80'
-* _BROADCAST_UUID_ : (Optional) This is the UUID that the device will message. Default is set to '*' which is a broadcast
-  to all devices. If a UUID is specified, messages from the mindwave will only be sent to the device with the specified UUID
-
-## 4. Running the Application
-To run the application Go to the Root Directory and enter the following command:
-
-    node [ENVIRONMENT_VARIABLE=VALUE] app.js 

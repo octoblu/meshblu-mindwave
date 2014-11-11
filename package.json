@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "lodash": "^2.4.1",
-    "skynet": "^1.1.1",
+    "skynet": "^1.7.0",
     "when": "^3.6.0"
   },
   "keywords": [

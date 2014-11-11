@@ -42,4 +42,8 @@ plugin.on('message', function(message){
   conx.message(message);
 });
 
+plugin.on('data', function(data){
+  conx.data(data);
+});
+
 plugin.on('error', console.error);
