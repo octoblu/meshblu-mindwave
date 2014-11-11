@@ -8,7 +8,8 @@ var MESSAGE_SCHEMA = {};
 var DEFAULT_OPTIONS = {
       mindwaveHost : '127.0.0.1',
       mindwavePort : '13854',
-      relayUUID : '*'
+      relayUUID : '*',
+      broadcastInterval : 100
 };
 
 var OPTIONS_SCHEMA = {
