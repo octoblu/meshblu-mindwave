@@ -1,12 +1,13 @@
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
-var mindwave = require('./lib/mindwaveConnection'); 
+
 
 var MESSAGE_SCHEMA = {};
 
 var DEFAULT_OPTIONS = {
       mindwaveHost : '127.0.0.1', 
-      mindwavePort : '13854'
+      mindwavePort : '13854',
+      relayUUID : '*'
 };
 
 var OPTIONS_SCHEMA = {
@@ -34,9 +35,6 @@ function Plugin(options){
   var self = this; 
   options = options || DEFAULT_OPTIONS; 
   self.options = options;
-  this.messageSchema = MESSAGE_SCHEMA;
-  this.optionsSchema = OPTIONS_SCHEMA;
-
   return this;
 }
 util.inherits(Plugin, EventEmitter);
@@ -48,21 +46,18 @@ Plugin.prototype.onMessage = function(message){
 
 Plugin.prototype.setOptions = function(options){
   this.options = options;
+  this.setupMindwaveConnection();
 };
 
 
-Plugin.prototype.getDefaultOptions = function(){
-    return DEFAULT_OPTIONS; 
-}; 
-
 Plugin.prototype.setupMindwaveConnection = function(){
-    var self = this; 
-    mindwave.connect(self.options)
-      .then(function(mindwaveConnection){
+    var self = this;
+     var mindwave = require('./lib/mindwaveConnection').connect(self.options);
+      mindwave.then(function(mindwaveConnection){
         var jsonDataBuffer = '';
         mindwaveConnection.on('data', function (result) {
             try {
-                jsonData = JSON.parse(result.toString());
+                var jsonData = JSON.parse(result.toString());
                 if(jsonData.blinkStrength || jsonData.eSense ){
                     console.log('sending skynet message');
                     var data = {
@@ -78,7 +73,7 @@ Plugin.prototype.setupMindwaveConnection = function(){
             }
         });
 
-        mindwaveConn.on('end', function () {
+        mindwaveConnection.on('end', function () {
             console.log('Socket connection ended', arguments); 
             console.log('mindwave client disconnected');
         });
@@ -91,5 +86,6 @@ Plugin.prototype.setupMindwaveConnection = function(){
 module.exports = {
   messageSchema: MESSAGE_SCHEMA,
   optionsSchema: OPTIONS_SCHEMA,
+  defaultOptions : DEFAULT_OPTIONS,
   Plugin: Plugin
 };

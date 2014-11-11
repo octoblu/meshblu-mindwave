@@ -15,7 +15,9 @@ conx.on('error', console.error);
 var plugin = new Plugin();
 
 conx.on('ready', function(){
+
   conx.whoami({uuid: config.uuid}, function(device){
+    console.log('WhoAmI', device);
     plugin.setOptions(device.options);
   });
   conx.update({
@@ -25,6 +27,15 @@ conx.on('ready', function(){
     optionsSchema: plugin.optionsSchema,
     options:       plugin.options
   });
+});
+
+conx.on('message', function(){
+  try {
+    plugin.onMessage.apply(plugin, arguments);
+  } catch (error){
+    console.error(error.message);
+    console.error(error.stack);
+  }
 });
 
 plugin.on('message', function(message){
