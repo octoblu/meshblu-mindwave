@@ -1,6 +1,7 @@
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var Mindwave = require('./lib/mindwaveConnection');
+var _ = require('lodash');
 
 
 var MESSAGE_SCHEMA = {};
@@ -38,11 +39,12 @@ var OPTIONS_SCHEMA = {
   }
 };
 
-function Plugin(options){
+function Plugin(){
   var self = this; 
-  options = options || DEFAULT_OPTIONS; 
-  self.options = options;
-  return this;
+  self.options = DEFAULT_OPTIONS;
+  self.messageSchema = MESSAGE_SCHEMA;
+  self.optionsSchema = OPTIONS_SCHEMA;
+  return self;
 }
 util.inherits(Plugin, EventEmitter);
 
@@ -52,37 +54,53 @@ Plugin.prototype.onMessage = function(message){
 };
 
 Plugin.prototype.setOptions = function(options){
-  this.options = options;
-  this.setupMindwaveConnection();
-};
-
-
-Plugin.prototype.setupMindwaveConnection = function(){
+  console.log('setting options', options);
   var self = this;
-  var mindwave = Mindwave.connect(self.options);
-  var throttledEmit = _.throttle(function(){
-  self.emit.apply(self, arguments);
-  }, self.options.broadcastInterval);
-  mindwave.then(function(mindwaveConnection){
-  mindwaveConnection.on('data', function (result) {
-    try {
-        var jsonData = JSON.parse(result.toString());
+  self.options = options;
+  self._mindwaveConnection = null;
+
+
+  self.getMindwaveConnection().then(function(mindwaveConnection){
+
+    var throttledEmit = _.throttle(function(){
+      self.emit.apply(self, arguments);
+    }, self.options.broadcastInterval);
+
+    mindwaveConnection.on('data', function (result) {
+      console.log(result.toString());
+      var jsonData;
+      try {
+        jsonData = JSON.parse(result.toString());
+        console.log(JSON.stringify(jsonData, null, 2));
         if(jsonData.blinkStrength || jsonData.eSense ){
-            var data = {
-                devices : self.options.relayUUID || '*',
-                payload : jsonData
-            };
+          console.log('sending skynet message');
+          var data = {
+            devices : [ self.options.relayUUID || '*'],
+            payload : jsonData
+          };
           throttledEmit('data', data);
         }
-    } catch (e) {
-      console.error(e.message);
-    }
-  });
+      } catch (e) {
+        console.log(e);
+      }
+    });
 
-  mindwaveConnection.on('end', function () {
-      console.log('Socket connection ended', arguments);
+    mindwaveConnection.on('end', function () {
       console.log('mindwave client disconnected');
+    });
+
   });
+};
+
+Plugin.prototype.getMindwaveConnection = function(){
+  var self = this;
+  if(self._mindwaveConnection){
+    return self._mindWaveConnection;
+  }
+
+  return Mindwave.connect(self.options).then(function(mindwaveConnection){
+     self._mindwaveConnection = mindwaveConnection;
+     return mindwaveConnection;
   });
 };
 
