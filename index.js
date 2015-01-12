@@ -2,6 +2,7 @@ var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var Mindwave = require('./lib/mindwaveConnection');
 var _ = require('lodash');
+var debug = require('debug')('meshblu-mindwave:index');
 
 
 var MESSAGE_SCHEMA = {};
@@ -54,14 +55,14 @@ Plugin.prototype.onMessage = function(message){
 };
 
 Plugin.prototype.setOptions = function(options){
-  console.log('setting options', options);
+  debug('setting options', options);
   var self = this;
   self.options = options;
   self._mindwaveConnection = null;
 
 
   self.getMindwaveConnection().then(function(mindwaveConnection){
-
+    self._mindwaveConnection = mindwaveConnection; 
     var throttledEmit = _.throttle(function(){
       self.emit.apply(self, arguments);
     }, self.options.broadcastInterval);
@@ -71,24 +72,26 @@ Plugin.prototype.setOptions = function(options){
       var jsonData;
       try {
         jsonData = JSON.parse(result.toString());
-        console.log(JSON.stringify(jsonData, null, 2));
+        debug(JSON.stringify(jsonData, null, 2));
         if(jsonData.blinkStrength || jsonData.eSense ){
-          console.log('sending skynet message');
-          var data = {
-            devices : [ self.options.relayUUID || '*'],
-            payload : jsonData
-          };
-          throttledEmit('data', data);
+          debug('Received mindwave data', jsonData);
+          throttledEmit('data', jsonData);
         }
       } catch (e) {
-        console.log(e);
+        console.error('Error parsing data:', e);
       }
     });
 
+    mindwaveConnection.on('error', function(error){
+      debug('Error:', error); 
+      console.error('meshblu-mindwave:connection-error', error); 
+    });
     mindwaveConnection.on('end', function () {
       console.log('mindwave client disconnected');
     });
 
+  }).catch(function(error){
+    self.emit('message', {error: 'Could not connect to mindwave'});
   });
 };
 
