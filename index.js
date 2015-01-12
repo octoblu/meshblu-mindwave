@@ -73,7 +73,7 @@ Plugin.prototype.setOptions = function(options){
         debug(JSON.stringify(jsonData, null, 2));
         if(jsonData.blinkStrength || jsonData.eSense ){
           debug('Received mindwave data', jsonData);
-          throttledEmit('data', jsonData);
+          throttledEmit('data', {payload : jsonData});
         }
       } catch (e) {
         console.error('Error parsing data:', e);
@@ -89,7 +89,7 @@ Plugin.prototype.setOptions = function(options){
     });
 
   }).catch(function(error){
-    self.emit('message', {error: 'Could not connect to mindwave'});
+    self.emit('data', {error: 'Could not connect to mindwave'});
   });
 };
 

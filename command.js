@@ -9,7 +9,10 @@ var conx = meshblu.createConnection({
   token  : config.token
 });
 
-conx.on('notReady', console.error);
+conx.on('notReady', function(error){
+  console.log('Error not ready', error);
+  console.error(error);
+});
 conx.on('error', console.error);
 
 var plugin = new Plugin();
@@ -30,6 +33,7 @@ conx.on('ready', function(){
 });
 
 conx.on('message', function(){
+
   try {
     plugin.onMessage.apply(plugin, arguments);
   } catch (error){
@@ -39,6 +43,7 @@ conx.on('message', function(){
 });
 
 plugin.on('message', function(message){
+  console.log('plugin message', message);
   conx.message(message);
 });
 
