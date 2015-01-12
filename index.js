@@ -50,14 +50,12 @@ function Plugin(){
 util.inherits(Plugin, EventEmitter);
 
 Plugin.prototype.onMessage = function(message){
-  var payload = message.payload;
-  this.emit('message', {devices: [this.options.relayUUID || '*'], topic: 'echo', payload: payload});
 };
 
 Plugin.prototype.setOptions = function(options){
   debug('setting options', options);
   var self = this;
-  self.options = options;
+  self.options = options || DEFAULT_OPTIONS;
   self._mindwaveConnection = null;
 
 

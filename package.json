@@ -1,6 +1,6 @@
 {
   "name": "meshblu-mindwave",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "scripts": {
     "start": "node command.js"
   },
