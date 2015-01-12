@@ -73,7 +73,7 @@ Plugin.prototype.setOptions = function(options){
         debug(JSON.stringify(jsonData, null, 2));
         if(jsonData.blinkStrength || jsonData.eSense ){
           debug('Received mindwave data', jsonData);
-          throttledEmit('data', {payload : jsonData});
+          throttledEmit('data', jsonData);
         }
       } catch (e) {
         console.error('Error parsing data:', e);
