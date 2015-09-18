@@ -1,21 +1,48 @@
 {
   "name": "meshblu-mindwave",
-  "version": "1.2.1",
+  "repository": "octoblu/meshblu-mindwave",
+  "version": "1.2.2",
+  "main": "connector.js",
   "scripts": {
-    "start": "node command.js"
+    "preinstall": "node -e \"try{require('./skip-install.js')}catch(e){}\"",
+    "start": "node command.js",
+    "test": "exit 0"
   },
   "dependencies": {
-    "cylon": "^0.20.2",
-    "cylon-neurosky": "^0.7.0",
-    "lodash": "^2.4.1",
-    "meshblu": "^1.9.0",
-    "when": "^3.6.0"
+    "cylon": "^1.2.0",
+    "cylon-neurosky": "^0.13.0",
+    "debug": "^2.1.0",
+    "lodash": "^3.10.1",
+    "meshblu": "^1.30.1",
+    "when": "^3.7.3"
   },
+  "bundledDependencies": [
+    "request",
+    "tar",
+    "fstream"
+  ],
+  "platformDependencies": {
+    "darwin": [
+      "xcode",
+      "bluetooth"
+    ],
+    "win32": [
+      "Python 2.7",
+      "Visual Studio (Express)",
+      "bluetooth"
+    ],
+    "win64": [
+      "Python 2.7",
+      "Visual Studio (Express)",
+      "bluetooth"
+    ],
+    "linux": null,
+    "android": null,
+    "ios": null
+  },
+  "license": "MIT",
   "keywords": [
     "meshblu-connector",
-    "gateblu",
-    "octoblu",
-    "neurosky",
-    "mindwave"
+    "gateblu"
   ]
 }
