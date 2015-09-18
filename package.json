@@ -1,7 +1,7 @@
 {
   "name": "meshblu-mindwave",
   "repository": "octoblu/meshblu-mindwave",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "main": "connector.js",
   "scripts": {
     "preinstall": "node -e \"try{require('./skip-install.js')}catch(e){}\"",
