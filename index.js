@@ -51,7 +51,6 @@ Plugin.prototype.setOptions = function(options){
     debug('connected to mindwave');
     var throttledEmit = _.throttle(function(payload){
       self.emit('message', payload);
-      console.log(payload);
     }, self.options.broadcastInterval || 100);
 
     client.on('data', function (result) {
