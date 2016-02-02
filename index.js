@@ -1,46 +1,31 @@
 var util         = require('util');
 var EventEmitter = require('events').EventEmitter;
-var Mindwave     = require('./lib/mindwaveConnection');
+var thinkgear = require('node-thinkgear-sockets');
 var _            = require('lodash');
 var debug        = require('debug')('meshblu-mindwave');
 
-var MESSAGE_SCHEMA = {};
+var client = thinkgear.createClient({ enableRawOutput: true });
+var connected = false;
 
-var DEFAULT_OPTIONS = {
-  mindwaveHost : '127.0.0.1',
-  mindwavePort : '13854',
-  relayUUID : '*',
-  broadcastInterval : 100
-};
+var MESSAGE_SCHEMA = {};
 
 var OPTIONS_SCHEMA = {
   type: 'object',
   properties: {
-    mindwaveHost: {
-      type: 'string',
-      required: true,
-      default : '127.0.0.1'
-    },
-    mindwavePort : {
-      type: 'string',
-      required: true,
-      default : '13854'
-    },
     broadcastInterval : {
       type : 'number',
       required : true,
       default : 100
-    },
-    relayUUID : {
-      type : 'string',
-      required : false,
-      default : '*'
     }
   }
 };
 
+var DEFAULT_OPTIONS = {
+  broadcastInterval: 100
+};
+
 function Plugin(){
-  var self = this;
+  self = this;
   self.options = DEFAULT_OPTIONS;
   self.messageSchema = MESSAGE_SCHEMA;
   self.optionsSchema = OPTIONS_SCHEMA;
@@ -50,63 +35,61 @@ util.inherits(Plugin, EventEmitter);
 
 Plugin.prototype.onMessage = function(message){
   var payload = message.payload;
-  this.emit('message', {devices: [this.options.relayUUID || '*'], topic: 'echo', payload: payload});
+};
+
+Plugin.prototype.onConfig = function(device){
+  var self = this;
+  self.setOptions(device.options||DEFAULT_OPTIONS);
 };
 
 Plugin.prototype.setOptions = function(options){
   debug('setting options', options);
   var self = this;
   self.options = options;
-  self._mindwaveConnection = null;
 
-  self.getMindwaveConnection().then(function(mindwaveConnection){
+  if(!connected){
     debug('connected to mindwave');
-    var throttledEmit = _.throttle(function(){
-      self.emit.apply(self, arguments);
-    }, self.options.broadcastInterval);
+    var throttledEmit = _.throttle(function(payload){
+      self.emit('message', payload);
+      console.log(payload);
+    }, self.options.broadcastInterval || 100);
 
-    mindwaveConnection.on('data', function (result) {
-      debug(result.toString());
-      var jsonData;
-      try {
-        jsonData = JSON.parse(result.toString());
-        debug(JSON.stringify(jsonData, null, 2));
-        if(jsonData.blinkStrength || jsonData.eSense ){
-          debug('sending skynet message');
-          var data = {
-            devices : [ self.options.relayUUID || '*'],
-            payload : jsonData
-          };
-          throttledEmit('data', data);
-        }
-      } catch (e) {
-        console.error(e);
-      }
+    client.on('data', function (result) {
+      var data = {
+        devices : '*',
+        payload : result
+      };
+      throttledEmit(data);
     });
 
-    mindwaveConnection.on('end', function () {
+    client.on('blink_data', function (result) {
+      var data = {
+        devices : '*',
+        payload : result
+      };
+      throttledEmit(data);
+    });
+
+    self.getMindwaveConnection();
+
+    client.on('end', function () {
+      connected = false;
       console.error('mindwave client disconnected');
     });
-
-  });
+  }
 };
 
 Plugin.prototype.getMindwaveConnection = function(){
-  var self = this;
-  if(self._mindwaveConnection){
-    return self._mindWaveConnection;
+  if(!connected){
+    client.connect();
+    connected = true;
   }
-
-  return Mindwave.connect(self.options).then(function(mindwaveConnection){
-     self._mindwaveConnection = mindwaveConnection;
-     return mindwaveConnection;
-  });
 };
 
 
 module.exports = {
+  options: DEFAULT_OPTIONS,
   messageSchema: MESSAGE_SCHEMA,
   optionsSchema: OPTIONS_SCHEMA,
-  defaultOptions : DEFAULT_OPTIONS,
   Plugin: Plugin
 };
